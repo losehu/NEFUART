@@ -14,8 +14,7 @@ SOURCES += \
     uart.cpp
 
 HEADERS += \
-    mainwindow.h \
-    uart.h
+    mainwindow.h
 
 FORMS += \
     mainwindow.ui
@@ -24,7 +23,7 @@ TRANSLATIONS += \
     NEFUART_zh_CN.ts
 CONFIG += lrelease
 CONFIG += embed_translations
-
+#DEFINES += QT_NO_DEBUG_OUTPUT
 QT       += serialport
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
