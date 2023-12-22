@@ -27,8 +27,7 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
-TRANSLATIONS += \
-    NEFUART_zh_CN.ts
+
 CONFIG += lrelease
 #DEFINES += QT_NO_DEBUG_OUTPUT
 QT       += serialport
