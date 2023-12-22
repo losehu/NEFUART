@@ -26,7 +26,7 @@ bool MainWindow::containsChineseChar(  const std::string &line, const std::strin
 unsigned char MainWindow::txt_to_byte(string targetChar,unsigned char *out)
 {
     unsigned char out_index=0;
-    std::ifstream file("C:/Users/RUPC/Desktop/github/NEFUART/build-NEFUART-Desktop_Qt_5_14_2_MinGW_32_bit-Release/release/chinese_map.txt"); // 替换为你的文件路径
+    std::ifstream file("C:/Users/RUPC/Desktop/UV-K6/NEFUART/build/chinese_map.txt"); // 替换为你的文件路径
     if (!file.is_open()) {
         qDebug() << "无法打开文件\n";
         return 0xff;
