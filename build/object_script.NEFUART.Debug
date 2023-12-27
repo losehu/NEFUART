@@ -30,11 +30,12 @@ debug/xlsxchart.o
 debug/xlsxsimpleooxmlfile.o
 debug/xlsxcellformula.o
 debug/MDC.o
+debug/NAME.o
+debug/WELCOME.o
 debug/app.o
 debug/comm.o
 debug/main.o
 debug/mainwindow.o
 debug/uart.o
-debug/welcome.o
 debug/moc_xlsxdocument.o
 debug/moc_mainwindow.o

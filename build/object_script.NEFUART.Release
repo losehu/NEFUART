@@ -30,11 +30,12 @@ release/xlsxchart.o
 release/xlsxsimpleooxmlfile.o
 release/xlsxcellformula.o
 release/MDC.o
+release/NAME.o
+release/WELCOME.o
 release/app.o
 release/comm.o
 release/main.o
 release/mainwindow.o
 release/uart.o
-release/welcome.o
 release/moc_xlsxdocument.o
 release/moc_mainwindow.o

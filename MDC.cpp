@@ -22,8 +22,7 @@ int MainWindow::MDC_READ()
         ui->mdc_table->setItem(i, 0, item);
     }
 
-    ui->progressBar->setValue(ui->progressBar->value()+10); // 这将把进度条的值设置为 50
-    int start_val = ui->progressBar->value();
+
     for(int i=0;i<MDC_NUM;i++)
     {
 
@@ -51,7 +50,7 @@ int MainWindow::MDC_READ()
 
 
         ui->mdc_table->setItem(i, 2, new QTableWidgetItem(QString::fromLocal8Bit(MDC_CONTACT,length)));
-        ui->progressBar->setValue(start_val+(100-start_val)/NUM_NEED_WRITE/MDC_NUM*(i+1)); // 这将把进度条的值设置为 50
+        ui->progressBar->setValue(10+(i+1)*30/MDC_NUM);
 
     }
 return 1;
@@ -71,14 +70,12 @@ int MainWindow::MDC_WRITE()
     qDebug()<<num<<endl;
 
 
-    ui->progressBar->setValue(ui->progressBar->value()+10); // 这将把进度条的值设置为 50
-    int start_val = ui->progressBar->value();
-
 
     for(int i=0;i<num;i++){
-      if(  write_byte(MDC_ADD[i/4]+(i%4)*16,16,MDC_INFO[i].sum)!=1)  return -1;
 
-        ui->progressBar->setValue(start_val+(100-start_val)/NUM_NEED_WRITE/num*(i+2)); // 这将把进度条的值设置为 50
+      if(  write_byte(MDC_ADD[i/4]+(i%4)*16,16,MDC_INFO[i].sum)!=1)  return -1;
+      ui->progressBar->setValue(10+30*(i+1)/num);
+
     }
 
     return 1;
@@ -197,7 +194,6 @@ int MainWindow::read_mdc_param(QString filePath)
                 cellStr = "";
             else
                 cellStr = cell->value().toString();
-
             // 调用函数将值插入表格
             setCellValueToItemValue(i - 1, j - 1, cellStr, 0);
         }

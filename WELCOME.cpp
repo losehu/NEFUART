@@ -23,10 +23,10 @@ bool MainWindow::containsChineseChar(  const std::string &line, const std::strin
     return (found != std::string::npos);
 }
 
-unsigned char MainWindow::txt_to_byte(string targetChar,unsigned char *out)
+unsigned char MainWindow::txt_to_byte(string targetChar,unsigned char *out,int max_len,bool flag,int row=0)
 {
     unsigned char out_index=0;
-    std::ifstream file("C:/Users/RUPC/Desktop/UV-K6/NEFUART/build/chinese_map.txt"); // 替换为你的文件路径
+    std::ifstream file(FONT_LOCAL); // 替换为你的文件路径
     if (!file.is_open()) {
         qDebug() << "无法打开文件\n";
         return 0xff;
@@ -61,8 +61,8 @@ unsigned char MainWindow::txt_to_byte(string targetChar,unsigned char *out)
             {
 
                 file.close();
-                QMessageBox::warning(this,tr("提示"),tr("欢迎字符应为英文字母、符号\n或中文汉字\n不能包含中文符号!"),QMessageBox::Ok);
-
+              if(flag)  QMessageBox::warning(this,tr("提示"),tr("欢迎字符应为\n英文字母、符号或中文汉字\n不能包含中文符号!"),QMessageBox::Ok);
+else          QMessageBox::warning(this, tr("提示"), tr("第%1信道名\n应为英文字母、符号或中文汉字\n不能包含中文符号!").arg(row), QMessageBox::Ok);
                 return 0xff;
             }
         }
@@ -75,10 +75,10 @@ unsigned char MainWindow::txt_to_byte(string targetChar,unsigned char *out)
     }
 
     file.close();
-    if(len>128)
+    if(len>max_len)
     {
-        QMessageBox::warning(this,tr("提示"),tr("欢迎字符太长!\n英文字符占7，中文字符占13\n总长应不超过128!"),QMessageBox::Ok);
-
+         if(flag) QMessageBox::warning(this,tr("提示"),tr("欢迎字符太长!\n英文字符占7，中文字符占13\n总长应不超过128!"),QMessageBox::Ok);
+else QMessageBox::warning(this,tr("提示"),tr("第%1信道名太长!\n英文字符占7，中文字符占13\n总长应不超过%2!").arg(row).arg(max_len),QMessageBox::Ok);
         return 0xff;
     }
     return out_index;
@@ -182,13 +182,14 @@ int MainWindow::WELCOME_WRITE()
 
     unsigned char out[str.length()*2];
     unsigned char out_index[2]={0};
-    out_index[0]=txt_to_byte(str,out);
+    out_index[0]=txt_to_byte(str,out,128,1);
     if(out_index[0]==0xff) return -1;
 
     unsigned char out2[str2.length()*2];
-    out_index[1]=txt_to_byte(str2,out2);
+    out_index[1]=txt_to_byte(str2,out2,128,1);
     if(out_index[1]==0xff)  return -1;
 
+    ui->progressBar->setValue(55);
 
     qDebug()<<"欢迎字符"<<(int)out_index[0]<<" "<<(int)out_index[1]<<endl;
     std::cout<<str.length()*2<<std::endl<<str2<<std::endl;
@@ -199,10 +200,35 @@ int MainWindow::WELCOME_WRITE()
     return 1;
 
 }
-uint8_t is_chn(uint8_t num) {
+uint8_t MainWindow::is_chn(uint8_t num) {
     if (num>=0x80) return 1;
     return 255;
 }
+
+string MainWindow::find_chinese(string searchString ) {
+    std::ifstream file(FONT_LOCAL); // 替换为你的文件名
+    std::string line;
+
+    if (file.is_open()) {
+        while (std::getline(file, line)) {
+            if (line.find(searchString) != std::string::npos) {
+                file.close();
+                return  line.substr(0,2);
+            }
+        }
+        file.close();
+        QMessageBox::warning(nullptr, QStringLiteral("警告"), QStringLiteral("欢迎字符读取错误！"));
+        return NULL;
+
+    } else {
+        QMessageBox::warning(nullptr, QStringLiteral("警告"), QStringLiteral("字库打开错误！"));
+        return NULL;
+    }
+
+    return NULL;
+}
+
+
 int MainWindow::WELCOME_READ()
 {
     uint8_t read_index[2];
@@ -239,13 +265,60 @@ int MainWindow::WELCOME_READ()
             char chn_code1[5]; // 4位十六进制字符串 + 结尾的 '\0'
             sprintf(chn_code1, "%04x", true_char[i]);
             string chn_code=chn_code1;
-            welcome1.append(chn_code);
+            welcome1.append(find_chinese(chn_code));
         }
         else  {
             welcome1.append( 1,(char)true_char[i]); // 使用 append 方法向字符串末尾添加字符
         }
     }
-    std::cout<<"welcome1:"<<welcome1<<std::endl;
+
+    ui->wel1->setPlainText(QString::fromLocal8Bit(welcome1.c_str()));
+
+    ui->progressBar->setValue(55);
+
+
+
+    //wel2
+
+    int char_num2=0;
+    bool cn_flag2[read_index[1]];
+    uint16_t true_char2[read_index[1]];
+
+    for(int i=0;i<read_index[1];i++)
+    {
+        uint8_t chn_judge = is_chn(read_wel2[i]);
+        if (chn_judge == 255 && read_wel2[i] != '\0') {
+            true_char2[char_num2]=read_wel2[i];
+            cn_flag2[char_num2]=0;
+
+            char_num2++;
+        }
+        else if (chn_judge != 255) {
+            cn_flag2[char_num2]=1;
+            true_char2[char_num2]=(read_wel2[i]<<8)|read_wel2[i+1];
+            i++;
+            char_num2++;
+        }
+    }
+    string welcome2="";
+    for(int i=0;i<char_num2;i++)
+    {
+        if(cn_flag2[i])
+        {
+            char chn_code1[5]; // 4位十六进制字符串 + 结尾的 '\0'
+            sprintf(chn_code1, "%04x", true_char2[i]);
+            string chn_code=chn_code1;
+            welcome2.append(find_chinese(chn_code));
+        }
+        else  {
+            welcome2.append( 1,(char)true_char2[i]); // 使用 append 方法向字符串末尾添加字符
+        }
+    }
+    ui->wel2->setPlainText(QString::fromLocal8Bit(welcome2.c_str()));
+
+
+
+
 
 
 

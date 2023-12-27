@@ -75,7 +75,7 @@ int  MainWindow::timetime_set()
         QMessageBox::warning(this,tr("提示"),tr("连接失败!"),QMessageBox::Ok);
         return -1;
     }
-    serial1->waitForReadyRead(100); // 等待一小段时间确保缓冲区清空
+    serial1->waitForReadyRead(200); // 等待一小段时间确保缓冲区清空
 
 
     // 读取数据
@@ -108,7 +108,85 @@ int MainWindow::read_byte(uint32_t add,uint8_t len,uint8_t *a)
 {
 
 
+if(add<0x00010000){
+    uint8_t payload[14+2];
+    payload[0]='\x1B';
+    payload[1]='\x05';
+    payload[2]='\x08';
+    payload[3]='\x00';
+    payload[4]=(add & 0x00FF);
+    payload[5]=(add & 0xFF00) >>8;
+    payload[6]=len;
+    payload[7]='\x00';
+    payload[8]='\x82';
+    payload[9]='\x40';
+    payload[10]='\x74';
+    payload[11]='\x65';
 
+    uint16_t crc = crc16_ccitt(payload, 12 );
+    payload[12]=crc & 0xFF;
+    payload[13]=(crc >> 8)& 0xFF;
+
+
+
+    payload_xor(payload,14);
+    uint8_t  message[20];
+    message[0]='\xAB';
+    message[1]='\xCD';
+    message[2]='\x0C';
+    message[3]='\x00';
+    for(int i =0;i<14;i++) {
+        message[i+4]=payload[i];
+    }
+    message[18]='\xDC';
+    message[19]='\xBA';
+
+
+
+    // 发送数据
+    QByteArray dataToSend(reinterpret_cast<const char*>(message), sizeof(message));
+
+    // 发送数据
+    qint64 bytesWritten = serial1->write(dataToSend); // 将数据发送到串口
+
+
+    if (bytesWritten == -1) {
+        QMessageBox::warning(this,tr("提示"),tr("读取失败!"),QMessageBox::Ok);
+        return -1;
+    }
+    serial1->waitForReadyRead(200); // 等待一小段时间确保缓冲区清空
+
+    // 读取数据
+    QByteArray receivedData = serial1->readAll(); // 阻塞接收数据
+
+    if (receivedData.isEmpty()) {
+        qDebug() << "读取失败";
+        QMessageBox::warning(this,tr("提示"),tr("读取失败!"),QMessageBox::Ok);
+        return -1;
+    } else {
+        qDebug() << "RECV:" << receivedData.toHex(' ').toUpper(); // 以16进制显示接收到的数据
+
+        if(!check_back(receivedData,0x051C))
+        {
+            qDebug() << "读取失败";
+            QMessageBox::warning(this,tr("提示"),tr("读取失败!"),QMessageBox::Ok);
+            return -1;
+        }
+    }
+    uint8_t* ucharData = reinterpret_cast< uint8_t*>(receivedData.data());
+    uint8_t check_array[receivedData.size()-8];
+    for(int i=0;i<receivedData.size()-8;i++)
+    {
+        check_array[i]=ucharData[4+i];
+    }
+    payload_xor(check_array,receivedData.size()-8);
+
+    for(int i=0;i<len;i++)
+    {
+       a[i]=check_array[8+i];
+    }
+    return 1;
+}else{
         uint8_t payload[14+2];
         payload[0]='\x2B';
         payload[1]='\x05';
@@ -156,7 +234,7 @@ int MainWindow::read_byte(uint32_t add,uint8_t len,uint8_t *a)
             QMessageBox::warning(this,tr("提示"),tr("读取失败!"),QMessageBox::Ok);
             return -1;
         }
-        serial1->waitForReadyRead(100); // 等待一小段时间确保缓冲区清空
+        serial1->waitForReadyRead(200); // 等待一小段时间确保缓冲区清空
 
         // 读取数据
         QByteArray receivedData = serial1->readAll(); // 阻塞接收数据
@@ -189,7 +267,7 @@ int MainWindow::read_byte(uint32_t add,uint8_t len,uint8_t *a)
         }
         return 1;
 }
-
+}
 
 
 
@@ -245,7 +323,7 @@ int MainWindow::write_byte(uint32_t add,uint8_t len,uint8_t *a)
             QMessageBox::warning(this,tr("提示"),tr("写入失败!"),QMessageBox::Ok);
             return -1;
         }
-        serial1->waitForReadyRead(100); // 等待一小段时间确保缓冲区清空
+        serial1->waitForReadyRead(200); // 等待一小段时间确保缓冲区清空
 
         // 读取数据
         QByteArray receivedData = serial1->readAll(); // 阻塞接收数据

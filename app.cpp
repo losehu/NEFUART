@@ -13,6 +13,7 @@ void MainWindow::on_read_param_triggered()
     if (!filePath.isEmpty()) {
         if(read_mdc_param(filePath)!=1)return;
 if(read_welcome_param(filePath)!=1)return;
+if(read_name_param(filePath)!=1)return;
 
     }else
     {
@@ -94,6 +95,21 @@ if (text.isEmpty())
 
 
 
+  xlsx.addSheet("中文信道名");
+  for (int i = 0; i < 200; ++i) {
+      xlsx.write( i+1, 1,   QString::number(i+1));
+
+      QTableWidgetItem *item_name = ui->name_table->item(i, 1); // 获取第二列单元格的 item
+      if (item_name) {
+           itemStr = item_name->text();
+          xlsx.write( i+1, 2, itemStr);
+
+      }else
+      {
+          xlsx.write( i+1, 2, "");
+
+      }
+  }
 
 
 

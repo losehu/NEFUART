@@ -12,6 +12,8 @@ void MainWindow::onTimeout() {
 
         ui->mdc_table->setItem(i, 0, new QTableWidgetItem(QString::number(i+1)));
     }
+
+
 }
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -36,7 +38,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->mdc_table->setColumnWidth(0, 40);
     ui->mdc_table->setColumnWidth(1, 60);
     ui->mdc_table->setColumnWidth(2, 200);
-
+    ui->name_table->setColumnWidth(0, 60);
+    ui->name_table->setColumnWidth(1, 180);
     ui->progressBar->setValue(0);
 
     for(int i =0;i<15;i++)
@@ -45,7 +48,16 @@ MainWindow::MainWindow(QWidget *parent)
         ui->mdc_table->setItem(i, 0, new QTableWidgetItem(QString::number(i+1)));
     }
 
+    for(int i =0;i<200;i++)
+    {
 
+        ui->name_table->setItem(i, 0, new QTableWidgetItem(QString::number(i+1)));
+    }
+    for (int row = 0; row < ui->name_table->rowCount(); ++row) {
+        QTableWidgetItem *item = ui->name_table->item(row, 0);
+        if (item)
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -178,10 +190,11 @@ void MainWindow::on_pushButton_clicked()
     if(timetime_set()==-1) {
         return ;
     }
-    uint8_t out_index[3];
-      read_byte(0x1e31e,3,out_index);
+    uint8_t name[17]="\x84\x6C\x88\xD9\x8C\x6C\x88\x18\x8F\x8C\x96\x27\x80\x07";
+    write_byte(0x0F50 , 16, name);
 
-std::cout<<std::hex<<out_index[0]<<" "<<out_index[1]<<std::endl;
+NAME_READ();
+
 
 }
 
@@ -190,62 +203,81 @@ std::cout<<std::hex<<out_index[0]<<" "<<out_index[1]<<std::endl;
 
 void MainWindow::on_read_clicked()
 {
+    ui->progressBar->setValue(0);
+
     QWidget *mainWindow = QApplication::activeWindow(); // 获取当前活动的主窗口
     if (mainWindow) {
         mainWindow->setDisabled(true); // 禁用主窗口中的所有部件
     }
-    ui->progressBar->setValue(0); // 这将把进度条的值设置为 50
     if(timetime_set()==-1) {
         if (mainWindow) {
             mainWindow->setDisabled(false); // 禁用主窗口中的所有部件
         }
+        ui->progressBar->setValue(0);
 
         return ;
 
     }
-    ui->progressBar->setValue(10); // 这将把进度条的值设置为 50
+    ui->progressBar->setValue(10);
 
    if( MDC_READ()!=1)goto end;
-   if( WELCOME_READ()!=1)goto end;
+   ui->progressBar->setValue(40);
 
+   if( WELCOME_READ()!=1)goto end;
+   ui->progressBar->setValue(70);
+
+           if( NAME_READ()!=1)goto end;
+
+           ui->progressBar->setValue(100);
 
    QMessageBox::warning(this,tr("提示"),tr("读取成功!"),QMessageBox::Ok);
 end:
+   ui->progressBar->setValue(0);
+
     if (mainWindow) {
         mainWindow->setDisabled(false); // 禁用主窗口中的所有部件
     }
-    ui->progressBar->setValue(0);
 
 }
 
 void MainWindow::on_write_clicked()
 {
+    ui->progressBar->setValue(0);
     QWidget *mainWindow = QApplication::activeWindow(); // 获取当前活动的主窗口
     if (mainWindow) {
         mainWindow->setDisabled(true); // 禁用主窗口中的所有部件
     }
-    ui->progressBar->setValue(0); // 这将把进度条的值设置为 50
 
     if(timetime_set()==-1) {
         if (mainWindow) {
             mainWindow->setDisabled(false); // 禁用主窗口中的所有部件
         }
+        ui->progressBar->setValue(0);
 
         return ;
 
     }
-    ui->progressBar->setValue(10); // 这将把进度条的值设置为 50
+    ui->progressBar->setValue(10);
 
     if(MDC_WRITE()!=1) goto end;
+    ui->progressBar->setValue(40);
+
     if(WELCOME_WRITE()!=1) goto end;
+    ui->progressBar->setValue(70);
+
+
+            if(NAME_WRITE()!=1) goto end;
+            ui->progressBar->setValue(100);
+
 
     QMessageBox::warning(this, tr("提示"), tr("写入成功!"), QMessageBox::Ok);
 
 end:
+    ui->progressBar->setValue(0);
+
     if (mainWindow) {
         mainWindow->setDisabled(false); // 禁用主窗口中的所有部件
     }
-    ui->progressBar->setValue(0);
 
 }
 

@@ -20,7 +20,8 @@
 #include "xlsxworkbook.h"
 #include "string"
 using namespace QXlsx;
-
+#define FONT_LOCAL "./chinese_map.txt"
+//#define FONT_LOCAL "C:/Users/RUPC/Desktop/UV-K6/NEFUART/build/chinese_map.txt"
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 typedef unsigned char uint8_t;
@@ -57,7 +58,12 @@ public:
         int  hex2dec(char *hex);
         int WELCOME_WRITE();
         int WELCOME_READ();
+        uint8_t is_chn(uint8_t num) ;
+        int NAME_READ();
+        int NAME_WRITE();
+        int read_name_param(QString filePath);
 
+        std::string find_chinese(std::string searchString ) ;
 
         struct MDC_T
         {
@@ -80,6 +86,7 @@ private slots:
     void on_write_clicked();
     void CHECK_MDC_TABLE();
 
+    unsigned char txt_to_byte(std::string targetChar,unsigned char *out,int max_len,bool flag,int row);
 
 
     void on_read_param_triggered();
@@ -87,7 +94,6 @@ private slots:
     void on_save_param_triggered();
 
 
-    unsigned char txt_to_byte(std::string targetChar,unsigned char *out);
     bool isGBKChineseCharacter( std::string &str, size_t index) ;
 
     bool containsChineseChar(const std::string &line, const std::string &target) ;

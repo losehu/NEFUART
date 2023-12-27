@@ -13,12 +13,13 @@ include(src/xlsx/qtxlsx.pri)
 
 SOURCES += \
     MDC.cpp \
+    NAME.cpp \
+    WELCOME.cpp \
     app.cpp \
     comm.cpp \
     main.cpp \
     mainwindow.cpp \
-    uart.cpp \
-    welcome.cpp
+    uart.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -28,7 +29,9 @@ FORMS += \
     mainwindow.ui
 
 
-CONFIG += lrelease
+CONFIG += lrelease\
+
+
 #DEFINES += QT_NO_DEBUG_OUTPUT
 QT       += serialport
 # Default rules for deployment.
@@ -37,6 +40,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    ../build-NEFUART-Desktop_Qt_5_14_2_MinGW_32_bit-Release/release/chinese_map.txt
+    ../build-NEFUART-Desktop_Qt_5_14_2_MinGW_32_bit-Release/release/chinese_map.txt \
+    RUBO1-tou.ico \
+    icon.rc
 
 
+RC_FILE +=
+icon.rc
+RC_ICONS = RUBO1-tou.ico
